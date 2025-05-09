@@ -68,8 +68,5 @@ sudo dpkg-reconfigure postfix
 
 Set EMAIL in the script to your desired address.
 
-📜 License
-MIT License. See LICENSE for details.
-
 🤝 Contributing
 Feel free to submit issues or PRs!
