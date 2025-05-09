@@ -23,7 +23,7 @@ This script periodically checks disk usage on specified mount points (e.g., `/`,
 ## ⚙️ Installation  
 
 ### 1. Clone the Repository  
-```bash
+bash
 git clone https://github.com/your-username/disk-usage-monitor.git
 cd disk-usage-monitor
 2. Make the Script Executable
