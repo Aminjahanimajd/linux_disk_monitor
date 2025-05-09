@@ -1,48 +1,75 @@
-**Disk Usage Monitor (Linux Bash Script)**
+# 🚀 Disk Usage Monitor  
 
-** Objective**
+A Bash script that monitors disk usage and sends alerts when usage exceeds a configured threshold.  
 
-Automate the monitoring of disk space on a Linux system and generate alerts if disk usage exceeds a specified threshold.
+![Bash](https://img.shields.io/badge/-Bash-%234EAA25?logo=gnu-bash&logoColor=white)  
+![Linux](https://img.shields.io/badge/-Linux-%23FCC624?logo=linux&logoColor=black)  
+![Ubuntu](https://img.shields.io/badge/-Ubuntu-%23E95420?logo=ubuntu&logoColor=white)  
 
-** Features**
+---
 
-- Monitors root (/) disk usage.
-- Configurable usage threshold (default: 80%).
-- Logs output to `/var/log/disk_usage_monitor.log`.
-- Optional email alert support.
+## 📖 Overview  
 
-** Usage**
+This script periodically checks disk usage on specified mount points (e.g., `/`, `/home`, `/boot`) and logs the status. If usage exceeds a predefined threshold, it can send email alerts.  
 
-** 1. Clone or download the script**
+### Features  
+✅ Monitors multiple mount points  
+✅ Logs disk usage to `/var/log/disk_usage_monitor.log`  
+✅ Optional email alerts  
+✅ Lightweight and easy to configure  
 
-git clone https://github.com/yourusername/disk-usage-monitor.git
+---
+
+## ⚙️ Installation  
+
+### 1. Clone the Repository  
+git clone https://github.com/your-username/disk-usage-monitor.git
 cd disk-usage-monitor
 
-** 2. Make the script executable**
-
+2. Make the Script Executable
 chmod +x disk_monitor.sh
 
-** 3. Run the script manually**
-
-./disk_monitor.sh
-
-**4. Automate with cron (optional)**
-
-To check disk usage every hour, add this line to your crontab (crontab -e):
-
-0 * * * * /path/to/disk_monitor.sh
-
-**Configuration**
-
-You can configure the alert threshold and email by editing the top of the script:
-
-THRESHOLD=80       # Set disk usage threshold percentage
-EMAIL="admin@example.com"   # Set to empty string "" to disable email alerts
-
-**Dependencies**
-
-mail (optional, for email alerts)
-Install it on Debian/Ubuntu:
+3. (Optional) Install mailutils for Email Alerts
+If you want email alerts, install mailutils:
 
 sudo apt install mailutils
 
+🔧 Configuration
+
+Edit the script (disk_monitor.sh) to configure:
+
+Variable	Description	Default
+THRESHOLD	Disk usage percentage threshold (alerts if exceeded)	80
+EMAIL	Email address for alerts (leave empty to disable)	""
+LOG_FILE	Path to log file	/var/log/disk_usage_monitor.log
+MOUNT_POINTS	Disk partitions to monitor	"/ /home /boot"
+
+🚦 Usage
+
+Run Manually
+sudo ./disk_monitor.sh
+
+Schedule with Cron (Automated Monitoring)
+Add to crontab (crontab -e) to run every hour:
+0 * * * * /path/to/disk_monitor.sh
+
+Check Logs
+tail -f /var/log/disk_usage_monitor.log
+
+📧 Email Alerts Setup
+
+Install mailutils (if not already installed):
+
+sudo apt install mailutils
+Configure Postfix (if needed):
+
+sudo dpkg-reconfigure postfix
+(Select "Internet Site" and follow prompts.)
+
+Set EMAIL in the script to your desired address.
+
+📜 License
+MIT License. See LICENSE for details.
+
+🤝 Contributing
+Feel free to submit issues or PRs!
