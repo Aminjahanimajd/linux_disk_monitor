@@ -23,16 +23,14 @@ This script periodically checks disk usage on specified mount points (e.g., `/`,
 ## ⚙️ Installation  
 
 ### 1. Clone the Repository  
-bash
+
 git clone https://github.com/your-username/disk-usage-monitor.git
 cd disk-usage-monitor
 2. Make the Script Executable
-bash
 chmod +x disk_monitor.sh
 3. (Optional) Install mailutils for Email Alerts
 If you want email alerts, install mailutils:
 
-bash
 sudo apt install mailutils
 🔧 Configuration
 Edit the script (disk_monitor.sh) to configure:
@@ -44,24 +42,19 @@ LOG_FILE	Path to log file	/var/log/disk_usage_monitor.log
 MOUNT_POINTS	Disk partitions to monitor	"/ /home /boot"
 🚦 Usage
 Run Manually
-bash
 sudo ./disk_monitor.sh
 Schedule with Cron (Automated Monitoring)
 Add to crontab (crontab -e) to run every hour:
 
-bash
 0 * * * * /path/to/disk_monitor.sh
 Check Logs
-bash
 tail -f /var/log/disk_usage_monitor.log
 📧 Email Alerts Setup
 Install mailutils (if not already installed):
 
-bash
 sudo apt install mailutils
 Configure Postfix (if needed):
 
-bash
 sudo dpkg-reconfigure postfix
 (Select "Internet Site" and follow prompts.)
 
