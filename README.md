@@ -1,86 +1,56 @@
-# 🚀 Disk Usage Monitor  
+# Disk Usage Monitor (Bash)  
 
-A Bash script that monitors disk usage and sends alerts when usage exceeds a configured threshold.  
+A small Bash script that checks disk usage for specified mount points and logs or sends an alert when usage exceeds a configured threshold.  
 
-![Bash](https://img.shields.io/badge/-Bash-%234EAA25?logo=gnu-bash&logoColor=white)  
-![Linux](https://img.shields.io/badge/-Linux-%23FCC624?logo=linux&logoColor=black)  
-![Ubuntu](https://img.shields.io/badge/-Ubuntu-%23E95420?logo=ubuntu&logoColor=white)  
+## Features  
 
----
+- Monitor multiple mount points (e.g., `/`, `/home`, `/boot`)  
+- Log status to a file  
+- Optional email alerts (requires `mail` / `mailutils` configured)  
+- Suitable for lightweight system monitoring on Linux  
 
-## 📖 Overview  
+## Usage  
 
-This script periodically checks disk usage on specified mount points (e.g., `/`, `/home`, `/boot`) and logs the status. If usage exceeds a predefined threshold, it can send email alerts.  
+1. Make the script executable:  
 
-### Features  
-✅ Monitors multiple mount points  
-✅ Logs disk usage to `/var/log/disk_usage_monitor.log`  
-✅ Optional email alerts  
-✅ Lightweight and easy to configure  
+   ```bash
+   chmod +x disk_monitor.sh
+   ```
 
----
+2. Edit the configuration variables at the top of `disk_monitor.sh`:  
 
-## ⚙️ Installation  
+- `THRESHOLD` — percentage (e.g., 80)  
+- `EMAIL` — email address to send alerts to (leave blank to disable)  
+- `LOG_FILE` — path to log file (default `/var/log/disk_usage_monitor.log`)  
+- `MOUNT_POINTS` — list of mount points  
 
-### 1. Clone the Repository  
+3. Run manually:  
 
-git clone https://github.com/your-username/disk-usage-monitor.git
+   ```bash
+   sudo ./disk_monitor.sh
+   ```
 
-cd disk-usage-monitor
+4. Schedule with cron (example: run every hour):  
 
-2. Make the Script Executable
+   ```bash
+   0 * * * * /path/to/disk_monitor.sh
+   ```
 
-chmod +x disk_monitor.sh
+## Email alerts  
 
-3. (Optional) Install mailutils for Email Alerts
+To enable email alerts you may need to install `mailutils` and configure Postfix or another MTA:  
 
-If you want email alerts, install mailutils:
-
+```bash
 sudo apt install mailutils
-
-🔧 Configuration
-
-Edit the script (disk_monitor.sh) to configure:
-
-Variable	Description	Default
-
-THRESHOLD	Disk usage percentage threshold (alerts if exceeded)	80
-
-EMAIL	Email address for alerts (leave empty to disable)	""
-
-LOG_FILE	Path to log file	/var/log/disk_usage_monitor.log
-
-MOUNT_POINTS	Disk partitions to monitor	"/ /home /boot"
-
-🚦 Usage
-
-Run Manually
-
-sudo ./disk_monitor.sh
-
-Schedule with Cron (Automated Monitoring)
-
-Add to crontab (crontab -e) to run every hour:
-
-0 * * * * /path/to/disk_monitor.sh
-
-Check Logs
-
-tail -f /var/log/disk_usage_monitor.log
-
-📧 Email Alerts Setup
-
-Install mailutils (if not already installed):
-
-sudo apt install mailutils
-
-Configure Postfix (if needed):
-
 sudo dpkg-reconfigure postfix
+```
 
-(Select "Internet Site" and follow prompts.)
+Set `EMAIL` at the top of the script to your email address.  
 
-Set EMAIL in the script to your desired address.
+## Notes  
 
-🤝 Contributing
-Feel free to submit issues or PRs!
+- This project is a compact utility aimed at learning shell scripting and basic system monitoring. It should be adapted for production use (logging rotation, better error handling, secure mail configuration).  
+
+## Author  
+
+Mohammadamin (Amin) Jahanimajd — BSc Data Analysis
