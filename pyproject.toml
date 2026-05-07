@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linux-hardware-monitor"
+version = "1.1.0"
+description = "Professional Linux system and hardware monitoring GUI"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "psutil>=6.0.0",
+  "PySide6>=6.8.0",
+  "pyqtgraph>=0.13.7"
+]
+
+[project.scripts]
+linux-hardware-monitor = "linux_disk_monitor_gui:main"
+
+[tool.setuptools]
+py-modules = ["linux_disk_monitor_gui"]

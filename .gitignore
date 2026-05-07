@@ -1,1 +1,18 @@
-"# See .gitignore for ignored files"  
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+
+# Local runtime outputs
+*.log
+*.csv
+*.sqlite3
+
+# Editor/OS
+.DS_Store
+Thumbs.db

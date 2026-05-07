@@ -1,268 +1,168 @@
-# Linux Disk Monitor
+# Linux Hardware Monitor Pro
 
-A production-oriented Linux monitoring project with two operational modes:
+A professional Linux monitoring project with two complementary products:
 
-- a hardened Bash monitor for automation and alerting
-- a desktop GUI application for realtime hardware and system telemetry
+- CLI monitor for automation and alerting: disk_monitor.sh
+- Premium desktop GUI monitor: linux_disk_monitor_gui.py
 
-## Executive Summary
+## Product Vision
 
-Disk-full incidents are one of the most common and costly operational failures in Linux environments. Services can stop writing logs, databases can fail transactions, and deployments can break without warning.
+Build a monitor that is easier to install than enterprise stacks, more visual than terminal-only tools, and safer than cloud-first products for users who want local-first telemetry.
 
-This project provides a practical answer: a dependency-light monitoring script for server-side reliability and a modern GUI dashboard for interactive observability.
+## Research-Driven Gap Analysis
 
-It is designed for administrators, DevOps engineers, and small teams that need reliable disk monitoring without deploying a full monitoring stack.
+A focused review of leading monitoring tools and documentation highlights recurring user needs:
 
-## Storyline: From Reactive Fixes to Proactive Operations
+- frictionless install and launch from app menu
+- local-first operation without mandatory cloud dependency
+- actionable alerts with cooldown, not noisy spam
+- exportable metrics for personal analysis and reporting
+- clean UX with readable hierarchy and realtime visibility
+- persistent configuration for non-technical users
+- process-level observability plus system-level trends
 
-### The problem
+Reference sources reviewed:
 
-Many systems rely on manual checks (`df -h`) or ad-hoc cron jobs with no standards for:
+- btop project docs: https://github.com/aristocratos/btop
+- Glances feature docs: https://nicolargo.github.io/glances/
+- Netdata project docs: https://github.com/netdata/netdata
 
-- alert thresholds
-- log consistency
-- filesystem filtering
-- duplicate alert suppression
-- integration with external notification tools
+## What Is Implemented Now
 
-The result is usually one of two extremes:
+### 1) Professional GUI App
 
-- no alert until outage
-- too many alerts, causing teams to ignore notifications
+File: linux_disk_monitor_gui.py
 
-### The goal
+Implemented features:
 
-Build a professional Linux monitor that is:
+- Realtime dashboard cards for CPU, memory, root disk, and network
+- Smooth live charts for CPU, memory, network in/out, and temperature
+- Storage explorer table for mounted filesystems
+- Process monitor with filter by process name or user
+- System overview with uptime, load average, battery, and thermal data
+- Insight stream for trend warnings and operational signals
+- Alert event stream with timestamps
 
-- easy to run anywhere
-- easy to integrate with existing tooling
-- stable under repeated execution
-- clear in logs and behavior
-- visually smooth and operationally useful for desktop users
+### 2) Configurable Alert Engine
 
-### The solution
+- CPU threshold alert
+- Memory threshold alert
+- Root disk threshold alert
+- Temperature threshold alert
+- Cooldown control to suppress repeated alert storms
+- Optional desktop notifications (notify-send)
 
-`disk_monitor.sh` provides structured CLI monitoring with validation, logging, cooldown-aware alerts, and customizable filesystem scope.
+### 3) Persistent Settings
 
-`linux_disk_monitor_gui.py` adds a polished desktop experience with realtime cards, charts, storage visibility, process ranking, and system diagnostics.
+Stored in:
 
-## Key Features
+- ~/.config/linux-hardware-monitor/config.json
 
-- Configurable threshold-based alerts (`--threshold`)
-- One-shot mode and continuous loop mode (`--loop`, `--interval`)
-- Alert cooldown per mountpoint to reduce noise (`--cooldown`, `--state-file`)
-- Built-in logging to stdout and optional file (`--log-file`)
-- Optional alert command hook for integrations (`--alert-cmd`)
-- Include/exclude filesystem type filters (`--include-types`, `--exclude-types`)
-- Dry-run mode for safe validation in production (`--dry-run`)
-- Strict input and dependency validation
+Settings include:
 
-## Desktop GUI Features
+- refresh interval
+- history length
+- thresholds
+- cooldown
+- process filter
+- notification toggle
+- auto-export toggle
 
-- Realtime dashboard cards for CPU, memory, root disk, and network throughput
-- Smooth charting for CPU, memory, and inbound/outbound network rates
-- Storage table for mounted filesystems with usage breakdown
-- Process table showing top CPU consumers
-- System overview panel with uptime, load average, temperatures, and battery (where available)
-- Professional dark UI with modern spacing, contrast, and readable hierarchy
+### 4) Export and Data Ownership
 
-## HWiNFO-Style Capability Comparison
+Stored in:
 
-### What this project already delivers
+- ~/.local/share/linux-hardware-monitor/latest_snapshot.json
+- ~/.local/share/linux-hardware-monitor/history.csv
+- ~/.local/share/linux-hardware-monitor/events.log
 
-- Realtime performance telemetry
-- Process and storage visibility
-- Temperature support where Linux sensors are available
-- Lightweight footprint and transparent open-source behavior
+Capabilities:
 
-### What full HWiNFO parity would additionally require
+- automatic CSV timeline export
+- one-click JSON snapshot export
+- manual full CSV history export
 
-- Deep vendor-specific sensor decoding (chipset, VRM, SMART/NVMe internals)
-- Motherboard and bus-level probing across many hardware vendors
-- Historical logging engine with custom graphs and alerts per sensor
-- Plugin ecosystem, report export pipelines, and broad proprietary hardware profiles
+### 5) Easy Installation
 
-This project is now a professional Linux monitor with strong core capabilities. Full HWiNFO-level parity is feasible as a roadmap, but it is a larger multi-phase product effort rather than a single script iteration.
+Added files:
 
-## Architecture and Behavior
+- install.sh
+- uninstall.sh
+- pyproject.toml
+- run_gui.sh
 
-1. Parse CLI arguments and validate runtime inputs.
-2. Read mounted filesystems via `df -P -T`.
-3. Filter filesystems by include/exclude rules.
-4. Compare usage against threshold.
-5. Trigger alert command only when cooldown allows it.
-6. Persist latest alert timestamp per mountpoint in state file.
-7. Emit scan summary logs.
+You can install in two easy ways:
 
-## Result Comparison
+1. Local desktop install with launcher and app menu entry
+2. Python package style install path via pyproject and entry point
 
-### Before (basic/manual approach)
+### 6) Existing Professional CLI Monitor
 
-- Manual checks are inconsistent and human-dependent.
-- Cron-based scripts often produce repeated alerts every run.
-- Limited auditability due to weak or no logging.
-- Hard to integrate with chat/email/pager workflows.
+File: disk_monitor.sh
 
-### After (this project)
-
-- Standardized, repeatable checks with clear CLI contract.
-- Controlled alert frequency with per-mount cooldown.
-- Structured logs for troubleshooting and audits.
-- Integration-ready via alert command environment variables.
-- Safer rollout with dry-run mode.
-
-## Requirements
-
-- Linux host
-- Bash
-- Core utilities: `df`, `awk`, `date`, `mkdir`
-- Python 3.10+
-- Python packages in `requirements.txt`
+- one-shot or loop mode
+- threshold checks
+- cooldown logic
+- alert command hook
+- filesystem include/exclude filtering
+- dry-run mode
 
 ## Quick Start
 
-```bash
-chmod +x disk_monitor.sh
+### Run GUI Fast
 
-# One-time scan with 85% threshold (default)
-./disk_monitor.sh
+1. chmod +x run_gui.sh
+2. ./run_gui.sh
 
-# One-time scan with custom threshold
-./disk_monitor.sh --threshold 90
-```
+### Install as a Local App (Recommended)
 
-### Launch GUI App
+1. chmod +x install.sh
+2. ./install.sh
+3. Launch from app menu: Linux Hardware Monitor
+4. Or run command: linux-hardware-monitor
 
-```bash
-chmod +x run_gui.sh
-./run_gui.sh
-```
+### Uninstall
 
-Or manual setup:
+1. chmod +x uninstall.sh
+2. ./uninstall.sh
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python3 linux_disk_monitor_gui.py
-```
+## CLI Usage
 
-## Usage
+1. chmod +x disk_monitor.sh
+2. ./disk_monitor.sh --help
 
-```bash
-./disk_monitor.sh [options]
-```
+Example:
 
-### Options
+./disk_monitor.sh --threshold 90 --loop --interval 300 --log-file /var/log/disk-monitor.log
 
-- `-t, --threshold <percent>`: Alert threshold percentage (default: `85`)
-- `-i, --interval <seconds>`: Check interval in loop mode (default: `300`)
-- `-l, --loop`: Run continuously
-- `--log-file <path>`: Append logs to a file
-- `--alert-cmd <command>`: Command to run on alert
-- `--state-file <path>`: Cooldown state file path (default: `/tmp/linux_disk_monitor.state`)
-- `--cooldown <seconds>`: Minimum seconds between repeated alerts per mount (default: `1800`)
-- `--include-types <list>`: Comma-separated filesystem types to include
-- `--exclude-types <list>`: Comma-separated filesystem types to exclude (default: `tmpfs,devtmpfs,squashfs,overlay`)
-- `--dry-run`: Simulate alerts without executing alert command
-- `-h, --help`: Show help
-- `-v, --version`: Show version
+## Why This Is Better Than Typical Lightweight Monitors
 
-## Integration Examples
+- Better than script-only monitors: rich GUI, alerts, persistent settings, exports
+- Better than many terminal monitors for non-terminal users: app menu launch and visual hierarchy
+- Better for privacy-sensitive users: local-first data files, no required cloud account
+- Better operationally: cooldown-aware alerting and trend insight feed
 
-### 1) Log to file and scan every 5 minutes
+## HWiNFO-Style Parity Status
 
-```bash
-./disk_monitor.sh --loop --interval 300 --log-file /var/log/disk-monitor.log
-```
+This project now provides professional realtime telemetry and operational UX on Linux.
 
-### 2) Send alerts to a webhook (example with curl)
+Full parity with deep proprietary hardware tools still requires larger multi-phase additions such as:
 
-```bash
-./disk_monitor.sh \
-	--threshold 88 \
-	--alert-cmd 'curl -sS -X POST https://example.com/hook \
-		-H "Content-Type: application/json" \
-		-d "{\"mount\":\"$DISK_MONITOR_MOUNT\",\"usage\":$DISK_MONITOR_USAGE,\"threshold\":$DISK_MONITOR_THRESHOLD}"'
-```
+- vendor-specific motherboard and VRM probing
+- advanced SMART/NVMe decoder coverage
+- broader hardware chipset profile database
+- extended per-sensor diagnostics and historical analytics
 
-### 3) Dry-run validation before enabling real alerts
+This repository now has a strong product-grade foundation to implement that roadmap.
 
-```bash
-./disk_monitor.sh --threshold 80 --dry-run
-```
+## Professional Next-Phase Upgrades (Planned)
 
-### 4) Watch only selected filesystem types
-
-```bash
-./disk_monitor.sh --include-types ext4,xfs --exclude-types ''
-```
-
-## Alert Command Contract
-
-When `--alert-cmd` is provided, these environment variables are exported:
-
-- `DISK_MONITOR_MOUNT`
-- `DISK_MONITOR_USAGE`
-- `DISK_MONITOR_THRESHOLD`
-- `DISK_MONITOR_FS`
-- `DISK_MONITOR_AVAILABLE`
-- `DISK_MONITOR_USED`
-- `DISK_MONITOR_TOTAL`
-
-This allows easy integration with email, Slack, Teams, PagerDuty, Opsgenie, and custom automation.
-
-## Operational Deployment
-
-### Cron (one-shot every 5 minutes)
-
-```cron
-*/5 * * * * /opt/linux_disk_monitor/disk_monitor.sh --threshold 85 --log-file /var/log/disk-monitor.log
-```
-
-### Systemd (continuous mode)
-
-Create `/etc/systemd/system/linux-disk-monitor.service`:
-
-```ini
-[Unit]
-Description=Linux Disk Monitor
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/opt/linux_disk_monitor/disk_monitor.sh --loop --interval 300 --threshold 85 --log-file /var/log/disk-monitor.log
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Then:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now linux-disk-monitor.service
-```
-
-## Reliability and Safety Notes
-
-- Cooldown is tracked per mountpoint to avoid repeated alert bursts.
-- State file is writable and can be relocated with `--state-file`.
-- `--dry-run` is recommended during initial rollout.
-- Excluding ephemeral filesystems by default reduces noisy alerts.
-
-## Roadmap
-
-- Native email notifier option
-- JSON log output mode
-- Unit tests for parser and filtering logic
-- Optional Prometheus textfile exporter mode
-- Per-sensor alert rule builder in GUI
-- Historical timeline and exportable report generation
-- Extended hardware probe adapters for advanced motherboard and NVMe stats
+- optional plugin system for collectors (GPU, SMART, motherboard)
+- report builder with PDF and Markdown export
+- baseline and anomaly scoring per metric family
+- multi-host agent mode with encrypted remote stream
+- AppImage and .deb packaging pipeline
 
 ## License
 
-This project is licensed under the terms in [LICENSE](LICENSE).
+See LICENSE.
