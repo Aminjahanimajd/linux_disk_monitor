@@ -1,12 +1,15 @@
 # Linux Disk Monitor
 
-A lightweight, production-oriented Bash utility for proactive disk capacity monitoring on Linux hosts.
+A production-oriented Linux monitoring project with two operational modes:
+
+- a hardened Bash monitor for automation and alerting
+- a desktop GUI application for realtime hardware and system telemetry
 
 ## Executive Summary
 
 Disk-full incidents are one of the most common and costly operational failures in Linux environments. Services can stop writing logs, databases can fail transactions, and deployments can break without warning.
 
-This project provides a practical answer: a dependency-light monitoring script that continuously checks mounted filesystems, alerts only when needed, and avoids notification storms with cooldown control.
+This project provides a practical answer: a dependency-light monitoring script for server-side reliability and a modern GUI dashboard for interactive observability.
 
 It is designed for administrators, DevOps engineers, and small teams that need reliable disk monitoring without deploying a full monitoring stack.
 
@@ -29,16 +32,19 @@ The result is usually one of two extremes:
 
 ### The goal
 
-Build a small but professional monitor that is:
+Build a professional Linux monitor that is:
 
 - easy to run anywhere
 - easy to integrate with existing tooling
 - stable under repeated execution
 - clear in logs and behavior
+- visually smooth and operationally useful for desktop users
 
 ### The solution
 
-`disk_monitor.sh` introduces a structured CLI with validation, logging, cooldown-aware alerts, and customizable filesystem scope.
+`disk_monitor.sh` provides structured CLI monitoring with validation, logging, cooldown-aware alerts, and customizable filesystem scope.
+
+`linux_disk_monitor_gui.py` adds a polished desktop experience with realtime cards, charts, storage visibility, process ranking, and system diagnostics.
 
 ## Key Features
 
@@ -50,6 +56,33 @@ Build a small but professional monitor that is:
 - Include/exclude filesystem type filters (`--include-types`, `--exclude-types`)
 - Dry-run mode for safe validation in production (`--dry-run`)
 - Strict input and dependency validation
+
+## Desktop GUI Features
+
+- Realtime dashboard cards for CPU, memory, root disk, and network throughput
+- Smooth charting for CPU, memory, and inbound/outbound network rates
+- Storage table for mounted filesystems with usage breakdown
+- Process table showing top CPU consumers
+- System overview panel with uptime, load average, temperatures, and battery (where available)
+- Professional dark UI with modern spacing, contrast, and readable hierarchy
+
+## HWiNFO-Style Capability Comparison
+
+### What this project already delivers
+
+- Realtime performance telemetry
+- Process and storage visibility
+- Temperature support where Linux sensors are available
+- Lightweight footprint and transparent open-source behavior
+
+### What full HWiNFO parity would additionally require
+
+- Deep vendor-specific sensor decoding (chipset, VRM, SMART/NVMe internals)
+- Motherboard and bus-level probing across many hardware vendors
+- Historical logging engine with custom graphs and alerts per sensor
+- Plugin ecosystem, report export pipelines, and broad proprietary hardware profiles
+
+This project is now a professional Linux monitor with strong core capabilities. Full HWiNFO-level parity is feasible as a roadmap, but it is a larger multi-phase product effort rather than a single script iteration.
 
 ## Architecture and Behavior
 
@@ -83,6 +116,8 @@ Build a small but professional monitor that is:
 - Linux host
 - Bash
 - Core utilities: `df`, `awk`, `date`, `mkdir`
+- Python 3.10+
+- Python packages in `requirements.txt`
 
 ## Quick Start
 
@@ -94,6 +129,22 @@ chmod +x disk_monitor.sh
 
 # One-time scan with custom threshold
 ./disk_monitor.sh --threshold 90
+```
+
+### Launch GUI App
+
+```bash
+chmod +x run_gui.sh
+./run_gui.sh
+```
+
+Or manual setup:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 linux_disk_monitor_gui.py
 ```
 
 ## Usage
@@ -208,6 +259,9 @@ sudo systemctl enable --now linux-disk-monitor.service
 - JSON log output mode
 - Unit tests for parser and filtering logic
 - Optional Prometheus textfile exporter mode
+- Per-sensor alert rule builder in GUI
+- Historical timeline and exportable report generation
+- Extended hardware probe adapters for advanced motherboard and NVMe stats
 
 ## License
 
