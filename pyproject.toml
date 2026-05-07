@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "linux-hardware-monitor"
-version = "1.1.0"
+version = "1.2.0"
 description = "Professional Linux system and hardware monitoring GUI"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -19,3 +19,6 @@ linux-hardware-monitor = "linux_disk_monitor_gui:main"
 
 [tool.setuptools]
 py-modules = ["linux_disk_monitor_gui"]
+
+[tool.setuptools.packages.find]
+include = ["collectors*"]

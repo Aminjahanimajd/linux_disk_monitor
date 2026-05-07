@@ -16,3 +16,9 @@ venv/
 # Editor/OS
 .DS_Store
 Thumbs.db
+
+# Packaging outputs
+dist/
+build/
+*.deb
+*.AppImage

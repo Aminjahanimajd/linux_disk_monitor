@@ -2,6 +2,7 @@
 
 import csv
 import json
+import math
 import platform
 import subprocess
 import sys
@@ -33,9 +34,12 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QTabWidget,
     QTextEdit,
+    QProgressBar,
     QVBoxLayout,
     QWidget,
 )
+
+from collectors import CollectorManager
 
 APP_NAME = "linux-hardware-monitor"
 APP_TITLE = "Linux Hardware Monitor Pro"
@@ -59,6 +63,7 @@ DEFAULT_CONFIG: Dict[str, object] = {
     "alert_temp": 80,
     "alert_cooldown_sec": 120,
     "process_filter": "",
+    "anomaly_sensitivity": 2.8,
 }
 
 
@@ -108,6 +113,8 @@ class Sample:
     net_out_mbs: float
     load_1: float
     temp_c: Optional[float]
+    anomaly_score: float = 0.0
+    baseline_drift: float = 0.0
 
 
 class StatCard(QFrame):
@@ -152,6 +159,22 @@ class MonitorWindow(QMainWindow):
 
         self.snapshots: List[Sample] = []
         self.last_alert_at: Dict[str, float] = {}
+        self.collector_manager = CollectorManager()
+        self.last_collector_poll = 0.0
+        self.collector_poll_seconds = 5
+
+        self.baseline = {
+            "cpu": None,
+            "memory": None,
+            "temp": None,
+            "net": None,
+        }
+        self.baseline_var = {
+            "cpu": 1.0,
+            "memory": 1.0,
+            "temp": 1.0,
+            "net": 1.0,
+        }
 
         self.prev_net = psutil.net_io_counters()
         self.prev_time = time.time()
@@ -210,12 +233,14 @@ class MonitorWindow(QMainWindow):
         self.storage_tab = QWidget()
         self.process_tab = QWidget()
         self.system_tab = QWidget()
+        self.hardware_tab = QWidget()
         self.settings_tab = QWidget()
 
         self.tabs.addTab(self.dashboard_tab, "Dashboard")
         self.tabs.addTab(self.storage_tab, "Storage")
         self.tabs.addTab(self.process_tab, "Processes")
         self.tabs.addTab(self.system_tab, "System")
+        self.tabs.addTab(self.hardware_tab, "Hardware Plugins")
         self.tabs.addTab(self.settings_tab, "Settings & Alerts")
 
         root_layout.addWidget(self.tabs)
@@ -224,6 +249,7 @@ class MonitorWindow(QMainWindow):
         self._build_storage_tab()
         self._build_process_tab()
         self._build_system_tab()
+        self._build_hardware_tab()
         self._build_settings_tab()
 
     def _build_dashboard_tab(self) -> None:
@@ -238,11 +264,13 @@ class MonitorWindow(QMainWindow):
         self.mem_card = StatCard("Memory", "#4cc9f0")
         self.disk_card = StatCard("Disk Root", "#ff9f1c")
         self.net_card = StatCard("Network", "#f15bb5")
+        self.risk_card = StatCard("Anomaly Risk", "#ff4d6d")
 
         cards.addWidget(self.cpu_card, 0, 0)
         cards.addWidget(self.mem_card, 0, 1)
         cards.addWidget(self.disk_card, 1, 0)
         cards.addWidget(self.net_card, 1, 1)
+        cards.addWidget(self.risk_card, 0, 2, 2, 1)
 
         layout.addLayout(cards)
 
@@ -330,6 +358,41 @@ class MonitorWindow(QMainWindow):
 
         layout.addWidget(self.proc_table)
 
+    def _build_hardware_tab(self) -> None:
+        layout = QVBoxLayout(self.hardware_tab)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(10)
+
+        title = QLabel("Collector Plugins: SMART, NVMe, GPU")
+        title.setObjectName("sectionTitle")
+        layout.addWidget(title)
+
+        self.collector_table = QTableWidget(0, 4)
+        self.collector_table.setHorizontalHeaderLabels(["Collector", "Available", "Status", "Metrics"])
+        self.collector_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.collector_table.verticalHeader().setVisible(False)
+        self.collector_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.collector_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.collector_table.setAlternatingRowColors(True)
+        layout.addWidget(self.collector_table)
+
+        risk_layout = QHBoxLayout()
+        risk_layout.addWidget(QLabel("Realtime anomaly risk"))
+        self.risk_bar = QProgressBar()
+        self.risk_bar.setRange(0, 100)
+        self.risk_bar.setValue(0)
+        self.risk_bar.setFormat("%p%")
+        risk_layout.addWidget(self.risk_bar)
+        layout.addLayout(risk_layout)
+
+        note = QLabel(
+            "Collectors are optional adapters. Missing binaries are handled gracefully and reported in status."
+        )
+        note.setWordWrap(True)
+        note.setObjectName("note")
+        layout.addWidget(note)
+        layout.addStretch(1)
+
     def _build_system_tab(self) -> None:
         layout = QVBoxLayout(self.system_tab)
         layout.setContentsMargins(8, 8, 8, 8)
@@ -380,6 +443,9 @@ class MonitorWindow(QMainWindow):
         self.cooldown_spin = QSpinBox()
         self.cooldown_spin.setRange(10, 3600)
 
+        self.anomaly_spin = QSpinBox()
+        self.anomaly_spin.setRange(1, 5)
+
         self.auto_export_check = QCheckBox("Auto-export CSV history")
         self.notify_check = QCheckBox("Desktop notifications")
 
@@ -404,8 +470,11 @@ class MonitorWindow(QMainWindow):
         grid.addWidget(QLabel("Alert cooldown (sec)"), 6, 0)
         grid.addWidget(self.cooldown_spin, 6, 1)
 
-        grid.addWidget(self.auto_export_check, 7, 0, 1, 2)
-        grid.addWidget(self.notify_check, 8, 0, 1, 2)
+        grid.addWidget(QLabel("Anomaly sensitivity (sigma)"), 7, 0)
+        grid.addWidget(self.anomaly_spin, 7, 1)
+
+        grid.addWidget(self.auto_export_check, 8, 0, 1, 2)
+        grid.addWidget(self.notify_check, 9, 0, 1, 2)
 
         layout.addLayout(grid)
 
@@ -453,6 +522,7 @@ class MonitorWindow(QMainWindow):
         self.disk_alert_spin.setValue(int(self.config["alert_disk"]))
         self.temp_alert_spin.setValue(int(self.config["alert_temp"]))
         self.cooldown_spin.setValue(int(self.config["alert_cooldown_sec"]))
+        self.anomaly_spin.setValue(int(round(float(self.config["anomaly_sensitivity"]))))
         self.auto_export_check.setChecked(bool(self.config["auto_export_csv"]))
         self.notify_check.setChecked(bool(self.config["desktop_notifications"]))
         self.process_search.setText(str(self.config.get("process_filter", "")))
@@ -468,6 +538,7 @@ class MonitorWindow(QMainWindow):
         self.config["alert_disk"] = int(self.disk_alert_spin.value())
         self.config["alert_temp"] = int(self.temp_alert_spin.value())
         self.config["alert_cooldown_sec"] = int(self.cooldown_spin.value())
+        self.config["anomaly_sensitivity"] = float(self.anomaly_spin.value())
         self.config["auto_export_csv"] = bool(self.auto_export_check.isChecked())
         self.config["desktop_notifications"] = bool(self.notify_check.isChecked())
 
@@ -590,6 +661,18 @@ class MonitorWindow(QMainWindow):
             QPushButton:pressed {
                 background: #1e3f66;
             }
+            QProgressBar {
+                background: #0b1628;
+                border: 1px solid #2a3f5f;
+                border-radius: 8px;
+                text-align: center;
+                color: #ecfeff;
+            }
+            QProgressBar::chunk {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #22d3ee, stop:1 #fb7185);
+                border-radius: 7px;
+            }
             QLineEdit, QSpinBox {
                 background: #0f1d31;
                 border: 1px solid #2d4364;
@@ -676,6 +759,10 @@ class MonitorWindow(QMainWindow):
             load_1=load_1,
             temp_c=max_temp,
         )
+        score, drift = self._anomaly_and_drift(sample)
+        sample.anomaly_score = score
+        sample.baseline_drift = drift
+
         self.snapshots.append(sample)
         if len(self.snapshots) > 5000:
             self.snapshots = self.snapshots[-5000:]
@@ -685,8 +772,13 @@ class MonitorWindow(QMainWindow):
         self._update_storage_table()
         self._update_process_table()
         self._update_system_info(cpu_percent, memory, max_temp)
+        self._update_risk_widgets(sample)
         self._run_alerts(sample)
         self._update_insights(sample)
+
+        if now - self.last_collector_poll >= self.collector_poll_seconds:
+            self._poll_collectors()
+            self.last_collector_poll = now
 
         if bool(self.config["auto_export_csv"]):
             self._append_csv(sample)
@@ -730,6 +822,70 @@ class MonitorWindow(QMainWindow):
 
         self.net_card.value.setText(f"{self.net_in_history[-1]:.2f} / {self.net_out_history[-1]:.2f} MB/s")
         self.net_card.meta.setText(f"totals in {format_bytes(net.bytes_recv)} out {format_bytes(net.bytes_sent)}")
+
+    def _update_risk_widgets(self, sample: Sample) -> None:
+        risk_percent = max(0, min(100, int(round(sample.anomaly_score * 20))))
+        self.risk_bar.setValue(risk_percent)
+        self.risk_card.value.setText(f"{risk_percent}%")
+        self.risk_card.meta.setText(f"drift={sample.baseline_drift:.2f} sigma")
+
+    def _poll_collectors(self) -> None:
+        results = self.collector_manager.collect_all()
+        self.collector_table.setRowCount(len(results))
+        for row, result in enumerate(results):
+            metrics = ", ".join(f"{k}={v}" for k, v in result.metrics.items()) if result.metrics else "-"
+
+            entries = [
+                result.name,
+                "yes" if result.available else "no",
+                result.status,
+                metrics,
+            ]
+
+            for col, value in enumerate(entries):
+                item = QTableWidgetItem(value)
+                self.collector_table.setItem(row, col, item)
+
+    def _anomaly_and_drift(self, sample: Sample) -> tuple[float, float]:
+        metrics = {
+            "cpu": sample.cpu,
+            "memory": sample.memory,
+            "temp": sample.temp_c or 0.0,
+            "net": sample.net_in_mbs + sample.net_out_mbs,
+        }
+
+        alpha = 0.05
+        z_values: List[float] = []
+        drift_values: List[float] = []
+
+        for key, current in metrics.items():
+            baseline = self.baseline[key]
+            variance = self.baseline_var[key]
+
+            if baseline is None:
+                self.baseline[key] = current
+                self.baseline_var[key] = max(1.0, current * 0.1)
+                continue
+
+            diff = current - baseline
+            variance = (1 - alpha) * variance + alpha * (diff * diff)
+            variance = max(variance, 1.0)
+            sigma = math.sqrt(variance)
+            z = abs(diff) / sigma
+
+            self.baseline[key] = (1 - alpha) * baseline + alpha * current
+            self.baseline_var[key] = variance
+
+            z_values.append(z)
+            drift_values.append(z)
+
+        if not z_values:
+            return 0.0, 0.0
+
+        sensitivity = float(self.config.get("anomaly_sensitivity", 2.8))
+        score = sum(min(5.0, z / sensitivity * 2.5) for z in z_values) / len(z_values)
+        drift = sum(drift_values) / len(drift_values)
+        return score, drift
 
     def _update_plots(self) -> None:
         self.cpu_line.setData(list(self.cpu_history))
@@ -872,6 +1028,15 @@ class MonitorWindow(QMainWindow):
             if bool(self.config["desktop_notifications"]):
                 self.notify_desktop(message)
 
+        if sample.anomaly_score >= 3.0:
+            anomaly_message = f"Anomaly risk elevated: score={sample.anomaly_score:.2f}, drift={sample.baseline_drift:.2f}"
+            last_ts = self.last_alert_at.get("anomaly", 0.0)
+            if now - last_ts >= cooldown:
+                self.last_alert_at["anomaly"] = now
+                self.log_alert(anomaly_message)
+                if bool(self.config["desktop_notifications"]):
+                    self.notify_desktop(anomaly_message)
+
     def _update_insights(self, sample: Sample) -> None:
         insights = []
 
@@ -892,6 +1057,11 @@ class MonitorWindow(QMainWindow):
 
         if sample.temp_c is not None and sample.temp_c > 75:
             insights.append(f"Thermal warning trend: {sample.temp_c:.1f} C")
+
+        if sample.anomaly_score >= 2.5:
+            insights.append(
+                f"Anomaly model detected abnormal behavior (score={sample.anomaly_score:.2f}, drift={sample.baseline_drift:.2f})"
+            )
 
         if not insights:
             insights.append("System trend is stable.")
@@ -931,7 +1101,20 @@ class MonitorWindow(QMainWindow):
         with CSV_HISTORY_FILE.open("a", newline="", encoding="utf-8") as handle:
             writer = csv.writer(handle)
             if not exists:
-                writer.writerow(["timestamp", "cpu", "memory", "disk_root", "net_in_mbs", "net_out_mbs", "load_1", "temp_c"])
+                writer.writerow(
+                    [
+                        "timestamp",
+                        "cpu",
+                        "memory",
+                        "disk_root",
+                        "net_in_mbs",
+                        "net_out_mbs",
+                        "load_1",
+                        "temp_c",
+                        "anomaly_score",
+                        "baseline_drift",
+                    ]
+                )
             writer.writerow(
                 [
                     sample.timestamp,
@@ -942,6 +1125,8 @@ class MonitorWindow(QMainWindow):
                     f"{sample.net_out_mbs:.4f}",
                     f"{sample.load_1:.4f}",
                     "" if sample.temp_c is None else f"{sample.temp_c:.2f}",
+                    f"{sample.anomaly_score:.4f}",
+                    f"{sample.baseline_drift:.4f}",
                 ]
             )
 
@@ -956,6 +1141,8 @@ class MonitorWindow(QMainWindow):
             "net_out_mbs": sample.net_out_mbs,
             "load_1": sample.load_1,
             "temp_c": sample.temp_c,
+            "anomaly_score": sample.anomaly_score,
+            "baseline_drift": sample.baseline_drift,
         }
         JSON_SNAPSHOT_FILE.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
@@ -975,7 +1162,20 @@ class MonitorWindow(QMainWindow):
         ensure_dirs()
         with CSV_HISTORY_FILE.open("w", newline="", encoding="utf-8") as handle:
             writer = csv.writer(handle)
-            writer.writerow(["timestamp", "cpu", "memory", "disk_root", "net_in_mbs", "net_out_mbs", "load_1", "temp_c"])
+            writer.writerow(
+                [
+                    "timestamp",
+                    "cpu",
+                    "memory",
+                    "disk_root",
+                    "net_in_mbs",
+                    "net_out_mbs",
+                    "load_1",
+                    "temp_c",
+                    "anomaly_score",
+                    "baseline_drift",
+                ]
+            )
             for s in self.snapshots:
                 writer.writerow(
                     [
@@ -987,6 +1187,8 @@ class MonitorWindow(QMainWindow):
                         f"{s.net_out_mbs:.4f}",
                         f"{s.load_1:.4f}",
                         "" if s.temp_c is None else f"{s.temp_c:.2f}",
+                        f"{s.anomaly_score:.4f}",
+                        f"{s.baseline_drift:.4f}",
                     ]
                 )
 
@@ -998,6 +1200,8 @@ class MonitorWindow(QMainWindow):
             subprocess.run(["xdg-open", str(DATA_DIR)], check=False)
         except FileNotFoundError:
             self.log_event(f"Data folder: {DATA_DIR}")
+
+
 def main() -> None:
     ensure_dirs()
     app = QApplication(sys.argv)

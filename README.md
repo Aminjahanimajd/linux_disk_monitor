@@ -1,168 +1,159 @@
 # Linux Hardware Monitor Pro
 
-A professional Linux monitoring project with two complementary products:
+An elite-tier Linux monitoring suite with:
 
-- CLI monitor for automation and alerting: disk_monitor.sh
-- Premium desktop GUI monitor: linux_disk_monitor_gui.py
+- a production Bash monitor for automation and alerting (`disk_monitor.sh`)
+- a premium desktop GUI with collector plugins and anomaly intelligence (`linux_disk_monitor_gui.py`)
 
-## Product Vision
+## What Was Upgraded In This Tier
 
-Build a monitor that is easier to install than enterprise stacks, more visual than terminal-only tools, and safer than cloud-first products for users who want local-first telemetry.
+This release executes the advanced roadmap in three major areas:
 
-## Research-Driven Gap Analysis
+1. Native packaging pipeline
+2. Collector plugin architecture (SMART, NVMe, GPU)
+3. Baseline-drift anomaly detection and scoring
 
-A focused review of leading monitoring tools and documentation highlights recurring user needs:
+## Research-Led Needs Matrix
 
-- frictionless install and launch from app menu
-- local-first operation without mandatory cloud dependency
-- actionable alerts with cooldown, not noisy spam
-- exportable metrics for personal analysis and reporting
-- clean UX with readable hierarchy and realtime visibility
-- persistent configuration for non-technical users
-- process-level observability plus system-level trends
+Based on practical gaps users report in common tools (installation friction, weak local ownership, alert noise, and missing export/insight flow), this project now targets those needs explicitly.
 
-Reference sources reviewed:
+Needs addressed now:
 
-- btop project docs: https://github.com/aristocratos/btop
-- Glances feature docs: https://nicolargo.github.io/glances/
-- Netdata project docs: https://github.com/netdata/netdata
+- easy Linux install and uninstall
+- desktop launcher integration
+- local-first data ownership
+- anomaly score for unusual runtime behavior
+- plugin-ready hardware telemetry model
+- configurable threshold and cooldown alerting
+- historical exports and event logs
 
-## What Is Implemented Now
+Reference ecosystems analyzed:
 
-### 1) Professional GUI App
+- btop: https://github.com/aristocratos/btop
+- Glances: https://nicolargo.github.io/glances/
+- Netdata: https://github.com/netdata/netdata
 
-File: linux_disk_monitor_gui.py
+## Elite Features Implemented
 
-Implemented features:
+### A) Native Packaging and Distribution
 
-- Realtime dashboard cards for CPU, memory, root disk, and network
-- Smooth live charts for CPU, memory, network in/out, and temperature
-- Storage explorer table for mounted filesystems
-- Process monitor with filter by process name or user
-- System overview with uptime, load average, battery, and thermal data
-- Insight stream for trend warnings and operational signals
-- Alert event stream with timestamps
+Added build pipeline scripts:
 
-### 2) Configurable Alert Engine
+- `scripts/build_deb.sh`
+- `scripts/build_appimage.sh`
+- `packaging/linux-hardware-monitor.desktop`
 
-- CPU threshold alert
-- Memory threshold alert
-- Root disk threshold alert
-- Temperature threshold alert
-- Cooldown control to suppress repeated alert storms
-- Optional desktop notifications (notify-send)
+Outputs:
 
-### 3) Persistent Settings
+- `.deb` package in `dist/deb/`
+- `.AppImage` artifact in `dist/`
 
-Stored in:
+### B) Collector Plugin Architecture
 
-- ~/.config/linux-hardware-monitor/config.json
+Added modular collectors package:
 
-Settings include:
+- `collectors/base.py`
+- `collectors/loader.py`
+- `collectors/smart_collector.py`
+- `collectors/nvme_collector.py`
+- `collectors/gpu_collector.py`
 
-- refresh interval
-- history length
-- thresholds
-- cooldown
-- process filter
-- notification toggle
-- auto-export toggle
+Collector behavior:
 
-### 4) Export and Data Ownership
+- graceful capability detection if binaries are missing
+- status reporting per plugin
+- standardized metric payloads
+- periodic polling and GUI visualization in a dedicated tab
 
-Stored in:
+### C) Anomaly and Baseline Drift Engine
 
-- ~/.local/share/linux-hardware-monitor/latest_snapshot.json
-- ~/.local/share/linux-hardware-monitor/history.csv
-- ~/.local/share/linux-hardware-monitor/events.log
+Implemented in GUI runtime:
 
-Capabilities:
+- per-metric rolling baseline (EWMA)
+- rolling variance and sigma estimation
+- anomaly score aggregation
+- baseline drift indicator
+- anomaly-triggered alert channel with cooldown control
+- visual risk card and progress bar in GUI
 
-- automatic CSV timeline export
-- one-click JSON snapshot export
-- manual full CSV history export
+### D) Premium GUI Additions
 
-### 5) Easy Installation
-
-Added files:
-
-- install.sh
-- uninstall.sh
-- pyproject.toml
-- run_gui.sh
-
-You can install in two easy ways:
-
-1. Local desktop install with launcher and app menu entry
-2. Python package style install path via pyproject and entry point
-
-### 6) Existing Professional CLI Monitor
-
-File: disk_monitor.sh
-
-- one-shot or loop mode
-- threshold checks
-- cooldown logic
-- alert command hook
-- filesystem include/exclude filtering
-- dry-run mode
+- new Hardware Plugins tab
+- anomaly risk card on dashboard
+- anomaly sensitivity control in settings
+- richer insights stream with anomaly interpretation
+- anomaly and drift fields exported to CSV and JSON snapshots
 
 ## Quick Start
 
-### Run GUI Fast
+### Fast Run (Dev)
 
-1. chmod +x run_gui.sh
-2. ./run_gui.sh
+```bash
+chmod +x run_gui.sh
+./run_gui.sh
+```
 
-### Install as a Local App (Recommended)
+### Local Desktop Install
 
-1. chmod +x install.sh
-2. ./install.sh
-3. Launch from app menu: Linux Hardware Monitor
-4. Or run command: linux-hardware-monitor
+```bash
+chmod +x install.sh
+./install.sh
+linux-hardware-monitor
+```
 
 ### Uninstall
 
-1. chmod +x uninstall.sh
-2. ./uninstall.sh
+```bash
+chmod +x uninstall.sh
+./uninstall.sh
+```
 
-## CLI Usage
+## Build Native Packages
 
-1. chmod +x disk_monitor.sh
-2. ./disk_monitor.sh --help
+### Build .deb
 
-Example:
+```bash
+chmod +x scripts/build_deb.sh
+./scripts/build_deb.sh
+```
 
+### Build AppImage
+
+Requires `appimagetool`.
+
+```bash
+chmod +x scripts/build_appimage.sh
+./scripts/build_appimage.sh
+```
+
+## Data Ownership
+
+Runtime files are local by default:
+
+- `~/.config/linux-hardware-monitor/config.json`
+- `~/.local/share/linux-hardware-monitor/history.csv`
+- `~/.local/share/linux-hardware-monitor/latest_snapshot.json`
+- `~/.local/share/linux-hardware-monitor/events.log`
+
+## CLI Monitor
+
+The Bash monitor remains available for server workflows:
+
+```bash
+chmod +x disk_monitor.sh
 ./disk_monitor.sh --threshold 90 --loop --interval 300 --log-file /var/log/disk-monitor.log
+```
 
-## Why This Is Better Than Typical Lightweight Monitors
+## Current vs Full Deep-Hardware Parity
 
-- Better than script-only monitors: rich GUI, alerts, persistent settings, exports
-- Better than many terminal monitors for non-terminal users: app menu launch and visual hierarchy
-- Better for privacy-sensitive users: local-first data files, no required cloud account
-- Better operationally: cooldown-aware alerting and trend insight feed
+This release now includes a professional GUI, plugin pipeline, anomaly scoring, and packaging automation.
 
-## HWiNFO-Style Parity Status
+Remaining long-horizon parity work for proprietary deep-hardware suites may include:
 
-This project now provides professional realtime telemetry and operational UX on Linux.
-
-Full parity with deep proprietary hardware tools still requires larger multi-phase additions such as:
-
-- vendor-specific motherboard and VRM probing
-- advanced SMART/NVMe decoder coverage
-- broader hardware chipset profile database
-- extended per-sensor diagnostics and historical analytics
-
-This repository now has a strong product-grade foundation to implement that roadmap.
-
-## Professional Next-Phase Upgrades (Planned)
-
-- optional plugin system for collectors (GPU, SMART, motherboard)
-- report builder with PDF and Markdown export
-- baseline and anomaly scoring per metric family
-- multi-host agent mode with encrypted remote stream
-- AppImage and .deb packaging pipeline
+- broader vendor-specific motherboard sensor decoders
+- advanced SMART/NVMe health model parsing beyond CLI summaries
+- deeper per-device diagnostics and fleet-grade analytics
 
 ## License
 
-See LICENSE.
+See `LICENSE`.

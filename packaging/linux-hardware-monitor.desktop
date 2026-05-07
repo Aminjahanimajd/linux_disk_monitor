@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Linux Hardware Monitor Pro
+Comment=Realtime Linux hardware and system monitoring
+Exec=linux-hardware-monitor
+Icon=utilities-system-monitor
+Terminal=false
+Categories=System;Monitor;
+StartupNotify=true
