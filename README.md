@@ -1,99 +1,163 @@
 # Linux Hardware Monitor Pro
 
-An elite-tier Linux monitoring suite with:
+A professional Linux monitoring platform designed to combine operations reliability, high-quality visual telemetry, and practical daily usability.
 
-- a production Bash monitor for automation and alerting (`disk_monitor.sh`)
-- a premium desktop GUI with collector plugins and anomaly intelligence (`linux_disk_monitor_gui.py`)
+This project delivers two integrated products:
 
-## What Was Upgraded In This Tier
+- **CLI monitor** for automation and infrastructure workflows: `disk_monitor.sh`
+- **Desktop GUI monitor** for realtime observability and diagnostics: `linux_disk_monitor_gui.py`
 
-This release executes the advanced roadmap in three major areas:
+## Executive Storyline
 
-1. Native packaging pipeline
-2. Collector plugin architecture (SMART, NVMe, GPU)
-3. Baseline-drift anomaly detection and scoring
+Most Linux teams begin monitoring with one of two extremes:
 
-## Research-Led Needs Matrix
+- lightweight scripts that are fast but limited in visualization and user experience
+- heavy stacks that are powerful but expensive in setup, maintenance, and resources
 
-Based on practical gaps users report in common tools (installation friction, weak local ownership, alert noise, and missing export/insight flow), this project now targets those needs explicitly.
+This project was built to close that gap.
 
-Needs addressed now:
+The storyline is simple: create a monitor that is **easy to install**, **professional to operate**, **clear to read under pressure**, and **extensible for deep hardware telemetry**.
 
-- easy Linux install and uninstall
-- desktop launcher integration
-- local-first data ownership
-- anomaly score for unusual runtime behavior
-- plugin-ready hardware telemetry model
-- configurable threshold and cooldown alerting
-- historical exports and event logs
+## Problem Statement
 
-Reference ecosystems analyzed:
+Common pain points users repeatedly face in system-monitoring tools:
 
-- btop: https://github.com/aristocratos/btop
-- Glances: https://nicolargo.github.io/glances/
-- Netdata: https://github.com/netdata/netdata
+1. Installation friction and weak desktop integration
+2. Alert noise without cooldown and prioritization
+3. Limited local ownership of data and exports
+4. Poor bridge between raw telemetry and actionable insights
+5. No simple path to extend hardware collectors over time
 
-## Elite Features Implemented
+## Goals
 
-### A) Native Packaging and Distribution
+Primary goals of this platform:
 
-Added build pipeline scripts:
+1. Deliver fast local monitoring with modern GUI quality
+2. Keep automation-first workflows available through CLI
+3. Provide alerting that is useful, not noisy
+4. Preserve local-first data ownership and easy export
+5. Establish an architecture that can scale to deeper hardware support
 
-- `scripts/build_deb.sh`
-- `scripts/build_appimage.sh`
-- `packaging/linux-hardware-monitor.desktop`
+## Solution Approach
 
-Outputs:
+The implementation is intentionally split into layered capabilities:
 
-- `.deb` package in `dist/deb/`
-- `.AppImage` artifact in `dist/`
+1. **Core telemetry layer**
+- CPU, memory, disk, network, process, temperature, uptime, and load metrics
 
-### B) Collector Plugin Architecture
+2. **Intelligence layer**
+- baseline modeling
+- variance and drift estimation
+- anomaly scoring
 
-Added modular collectors package:
+3. **Collector extension layer**
+- plugin architecture for optional hardware collectors (SMART, NVMe, GPU)
 
-- `collectors/base.py`
-- `collectors/loader.py`
-- `collectors/smart_collector.py`
-- `collectors/nvme_collector.py`
-- `collectors/gpu_collector.py`
+4. **Operations layer**
+- alerts with cooldown
+- desktop notifications
+- historical CSV + JSON snapshots + event log
 
-Collector behavior:
+5. **Distribution layer**
+- local installer
+- uninstall path
+- `.deb` and AppImage build scripts
 
-- graceful capability detection if binaries are missing
-- status reporting per plugin
-- standardized metric payloads
-- periodic polling and GUI visualization in a dedicated tab
+## User Need Satisfaction Matrix
 
-### C) Anomaly and Baseline Drift Engine
+| User Need | Implementation | Status |
+|---|---|---|
+| Easy install on Linux | `install.sh`, desktop entry, command launcher | Implemented |
+| Easy removal | `uninstall.sh` | Implemented |
+| Realtime visibility | Dashboard cards + charts + process/storage/system tabs | Implemented |
+| Actionable alerts | Thresholds, cooldown, desktop notifications | Implemented |
+| Local data ownership | Config + CSV + JSON + logs in user home | Implemented |
+| Hardware extensibility | Collector plugin framework | Implemented |
+| Outlier detection | Anomaly score + baseline drift engine | Implemented |
+| Package distribution | `.deb` and AppImage build scripts | Implemented |
 
-Implemented in GUI runtime:
+## Feature Set (Professional Scope)
 
-- per-metric rolling baseline (EWMA)
-- rolling variance and sigma estimation
-- anomaly score aggregation
-- baseline drift indicator
-- anomaly-triggered alert channel with cooldown control
-- visual risk card and progress bar in GUI
+### GUI Platform
 
-### D) Premium GUI Additions
+- Realtime dashboard cards for CPU, memory, root disk, network, anomaly risk
+- Realtime charts for CPU, memory, network in/out, and temperature
+- Process explorer with filter by name/user
+- Storage table for mounted filesystems
+- System details panel (uptime, load, battery, architecture, etc.)
+- Hardware Plugins tab for collector status and metrics
+- Settings panel for thresholds, refresh rate, history window, and sensitivity
 
-- new Hardware Plugins tab
-- anomaly risk card on dashboard
-- anomaly sensitivity control in settings
-- richer insights stream with anomaly interpretation
-- anomaly and drift fields exported to CSV and JSON snapshots
+### Intelligence and Alerts
 
-## Quick Start
+- Per-metric baseline tracking using EWMA
+- Rolling variance and sigma-based drift evaluation
+- Aggregated anomaly score and risk visualization
+- Anomaly-triggered alert channel with cooldown control
+- CPU/memory/disk/temp thresholds with cooldown protection
 
-### Fast Run (Dev)
+### Data and Outputs
+
+Generated artifacts:
+
+- `~/.config/linux-hardware-monitor/config.json`
+- `~/.local/share/linux-hardware-monitor/history.csv`
+- `~/.local/share/linux-hardware-monitor/latest_snapshot.json`
+- `~/.local/share/linux-hardware-monitor/events.log`
+
+Export fields include:
+
+- raw resource metrics
+- anomaly score
+- baseline drift
+
+## Result and Output Quality
+
+Expected operational outcomes after deployment:
+
+1. Faster diagnosis of resource pressure events
+2. Lower alert fatigue due to cooldown-aware notification logic
+3. Better trend awareness through anomaly and drift indicators
+4. Clear local audit trail via event logs and timeline exports
+5. Better portability through package/build workflows
+
+## Guide-Level Comparison and Pros
+
+### Compared with script-only monitoring
+
+Pros:
+
+- richer UI and trend visibility
+- anomaly and drift analytics
+- plugin extension path
+- native package build scripts
+
+### Compared with terminal-only monitors
+
+Pros:
+
+- desktop-first accessibility for non-terminal users
+- structured settings screen and export controls
+- integrated alert + insight panes
+
+### Compared with heavier cloud stacks
+
+Pros:
+
+- local-first by default
+- lower setup overhead
+- transparent file-based outputs and configuration
+
+## Installation and Usage Guide
+
+### Quick Development Run
 
 ```bash
 chmod +x run_gui.sh
 ./run_gui.sh
 ```
 
-### Local Desktop Install
+### Local Desktop Installation
 
 ```bash
 chmod +x install.sh
@@ -108,9 +172,16 @@ chmod +x uninstall.sh
 ./uninstall.sh
 ```
 
-## Build Native Packages
+### CLI Mode (Automation)
 
-### Build .deb
+```bash
+chmod +x disk_monitor.sh
+./disk_monitor.sh --threshold 90 --loop --interval 300 --log-file /var/log/disk-monitor.log
+```
+
+## Package Build Guide
+
+### Build Debian Package
 
 ```bash
 chmod +x scripts/build_deb.sh
@@ -126,33 +197,109 @@ chmod +x scripts/build_appimage.sh
 ./scripts/build_appimage.sh
 ```
 
-## Data Ownership
+## Testing Guide (How To Test This App)
 
-Runtime files are local by default:
+This section is designed for practical verification from developer laptop to production-like usage.
 
-- `~/.config/linux-hardware-monitor/config.json`
-- `~/.local/share/linux-hardware-monitor/history.csv`
-- `~/.local/share/linux-hardware-monitor/latest_snapshot.json`
-- `~/.local/share/linux-hardware-monitor/events.log`
-
-## CLI Monitor
-
-The Bash monitor remains available for server workflows:
+### 1) Static Validation
 
 ```bash
-chmod +x disk_monitor.sh
-./disk_monitor.sh --threshold 90 --loop --interval 300 --log-file /var/log/disk-monitor.log
+python -m py_compile linux_disk_monitor_gui.py collectors/base.py collectors/loader.py collectors/smart_collector.py collectors/nvme_collector.py collectors/gpu_collector.py
+bash -n install.sh
+bash -n uninstall.sh
+bash -n run_gui.sh
+bash -n disk_monitor.sh
+bash -n scripts/build_deb.sh
+bash -n scripts/build_appimage.sh
 ```
 
-## Current vs Full Deep-Hardware Parity
+Success criteria:
 
-This release now includes a professional GUI, plugin pipeline, anomaly scoring, and packaging automation.
+- no syntax errors returned
 
-Remaining long-horizon parity work for proprietary deep-hardware suites may include:
+### 2) Functional GUI Smoke Test
 
-- broader vendor-specific motherboard sensor decoders
-- advanced SMART/NVMe health model parsing beyond CLI summaries
-- deeper per-device diagnostics and fleet-grade analytics
+1. Launch GUI with `./run_gui.sh`
+2. Confirm tabs render: Dashboard, Storage, Processes, System, Hardware Plugins, Settings
+3. Confirm cards and charts update every second
+4. Apply a process filter and verify table updates
+5. Save settings and restart app; verify values persist
+
+Success criteria:
+
+- no crashes
+- metrics update continuously
+- settings persist correctly
+
+### 3) Alert Behavior Test
+
+1. Set low thresholds (for example CPU to 5)
+2. Generate load (`yes > /dev/null` in another terminal)
+3. Verify alert appears in Alert stream
+4. Verify cooldown prevents repeated spam
+
+Success criteria:
+
+- first alert fires
+- repeated alerts respect cooldown
+
+### 4) Anomaly and Drift Test
+
+1. Keep system idle for baseline warm-up
+2. Trigger a sudden load burst (CPU/network/disk)
+3. Observe anomaly risk card and progress bar
+4. Confirm anomaly insight appears in insight feed
+
+Success criteria:
+
+- risk score rises under abnormal behavior
+- drift value changes meaningfully
+
+### 5) Collector Plugin Test
+
+1. Open Hardware Plugins tab
+2. Verify each collector reports availability/status
+3. If tools exist (`smartctl`, `nvme`, `nvidia-smi`, or `rocm-smi`), verify metrics appear
+
+Success criteria:
+
+- missing binaries are reported gracefully
+- installed collectors return metrics without breaking UI
+
+### 6) Export Test
+
+1. Click Export Snapshot
+2. Click Export CSV Now
+3. Open data folder from settings
+4. Verify files exist and include anomaly fields
+
+Success criteria:
+
+- JSON snapshot created
+- CSV history created with expected columns
+- events log updates over runtime
+
+### 7) Packaging Test
+
+1. Run `./scripts/build_deb.sh`
+2. Install resulting package on test VM
+3. Launch from app menu and command line
+4. Repeat with AppImage build script where toolchain is available
+
+Success criteria:
+
+- package builds successfully
+- app launches from installed artifact
+
+## Current Scope vs Deep-Proprietary Parity
+
+The platform now delivers a professional monitoring experience with strong architecture and practical intelligence.
+
+Future deep-hardware parity opportunities include:
+
+- broader vendor-specific motherboard/VRM sensors
+- richer SMART/NVMe health interpretation models
+- larger device-profile coverage across distributions and kernels
 
 ## License
 
